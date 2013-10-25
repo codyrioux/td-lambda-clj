@@ -1,34 +1,18 @@
 (ns td-lambda.core
   "A vectorized implementation of TD(lambda) reinforcement learning algorithm."
-  (:require [td-lambda.util :as util]))
+  (:require [td-lambda.util :as util]
+            [incanter.core :refer [matrix mult mmult plus trans]]))
 
-(defn theta-t-phi
-  [theta phi]
-  (reduce + (map * theta phi)))
-
-(defn scalar-op-vec
-  [s op v]
-  (map (partial op s) v))
-
-(defn vec-op-vec
-  [x op y]
-  (map op x y))
-
-(defn v
-  [theta fe-s]
-  (theta-t-phi theta fe-s))
-
-(defn q
+(defn- q
   [reward m y theta fe s a]
-  (+ 
-    (reward (m s a))
-    (* y (v theta (fe (m s a))))))
+  (+ (reward (m s a))
+     (* y (first (mmult (trans theta) (matrix (fe (m s a))))))))
 
 (defn- policy
   "Applies the policy that would be defined by v to select an action.
-   Randomly selects between equivalent actions.
-   Assumes an initial value of 0.01 for each state, uses zero
-   when set to greedy (param r = 0)"
+   Currently implements Softmax Action Selection over a Boltzmann
+   distribution. As temperature r is reduced the policy becomes
+   greedier."
   [theta reward y m r fe sp s]
   (let
     [actions (sp s)
@@ -51,14 +35,14 @@
   (loop
     [s si
      theta theta
-     e (repeat (count (fe si)) 0)]
+     e (matrix (repeat (count (fe si)) 0))]
     (let [s' (m s (policy theta reward y m tk fe sp s))
           r (reward s')
-          fe-s (fe s)
-          delta (- (+ r (* y (theta-t-phi theta (fe s')))) (theta-t-phi theta fe-s))
-          fe-s (fe s)
-          e (vec-op-vec (scalar-op-vec (* y lambda) * e) + fe-s)
-          theta (vec-op-vec theta + (scalar-op-vec (* alphak delta) * e))]
+          fe-s (matrix (fe s))
+          delta (- (+ r (* y (first (mmult (trans theta) (matrix (fe s'))))))
+                   (first (mmult (trans theta) fe-s)))
+          e (plus (mult (* y lambda) e) fe-s)
+          theta (plus theta (mult (* alphak delta) e))]
       (if (terminal? s') theta (recur s' theta e)))))
 
 (defn learn
@@ -74,14 +58,12 @@
    y: Discount rate for future states.
    nmax: Number of episodes for learning.
    terminal?: A function that determines if a state s is a terminal state.
-   reset: A boolean determining if the eligibility should reset at each episode.
+   reset: Currently does nothing.
 
    Returns a policy function p in which (p s) => a."
-  [m reward fe initial-state sp lambda y alpha nmax terminal? & {:keys [reset]
-                                                                 :or {reset true}}]
+  [m reward fe initial-state sp lambda y alpha nmax terminal? & {:keys [reset] :or {reset true}}]
   (partial policy
            (nth (iterate (partial episode m reward fe initial-state sp lambda y terminal? 0.987 alpha)
-                         (repeat (count (fe initial-state)) 0))
+                         (matrix (repeat (count (fe initial-state)) 0)))
                 (dec nmax))
            reward y m 0 fe sp))
-

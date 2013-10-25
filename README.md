@@ -1,10 +1,10 @@
 # td-lambda-clj
 A clojure library implementing a vectorized version of TD(lambda).
-The goals of this impelementation are as follows:
+The goals of this impelementation are:
 
 - Easy to use
 - Safe (type checked, tested) [TODO]
-- Vectorized [TODO]
+- Vectorized
 - Simple, idiomatic clojure
 - Actively maintained
 
