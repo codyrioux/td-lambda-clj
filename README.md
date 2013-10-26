@@ -1,12 +1,18 @@
-# td-lambda-clj
+# td-lambda
 A clojure library implementing a vectorized version of TD(lambda).
+
 The goals of this impelementation are:
 
 - Easy to use
-- Safe (type checked, tested) [TODO]
+- Safe (type checked, tested) [TODO - types]
 - Vectorized
 - Simple, idiomatic clojure
 - Actively maintained
+
+I plan to actively maintain this library indefinitely so please feel free
+to submit feature requests, bug reports and the like and I'll attempt to
+attend to them in a timely fashion. I'm also trying to hone my (nonexistent)
+functional library design skills through some reading so bear with me.
 
 ## Usage
 
