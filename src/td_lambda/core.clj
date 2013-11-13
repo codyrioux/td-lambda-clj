@@ -19,7 +19,7 @@
      q (partial q reward m y theta fe s)]
     (cond
       (empty? actions) nil
-      (= 0 r) (util/argmax q actions)
+      (zero? r) (util/argmax q actions)
       :else
       (let
         [boltzmann-sum (reduce + 0 (map #(java.lang.StrictMath/exp
