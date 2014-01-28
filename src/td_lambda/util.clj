@@ -3,7 +3,7 @@
 (defn argmax
   "Returns the item in coll which results in the maximal value for f."
   [f coll]
-  (if (empty? coll) nil
+  (when (seq coll)
     (let [results (zipmap coll (map f coll))
           max-value (apply max (vals results))
           max-args (map first (filter #(= max-value (second %)) results))]
@@ -11,15 +11,15 @@
 
 (defn rand-from-probdist
   [probdist]
-  (if (empty? probdist) nil
+  (when (seq probdist)
     (loop
       [r (rand)
        coll probdist]
       (cond
         (= 1 (count coll))
-        (first (first coll))
+        (ffirst coll)
         (> 0 (- r (second (first coll))))
-        (first (first coll))
+        (ffirst coll)
         :else
         (recur
           (- r (second (first coll)))
