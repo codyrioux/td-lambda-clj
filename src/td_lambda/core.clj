@@ -62,8 +62,6 @@
    nmax: Number of episodes for learning.
    terminal?: A function that determines if a state s is a terminal state.
 
-
-
    Returns a policy function p in which (p s) => a."
   [m reward fe initial-state sp lambda y alpha tau nmax terminal?]
   (let [alpha (if (number? alpha) (fn [_] num alpha) alpha)
