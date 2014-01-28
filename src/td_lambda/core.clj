@@ -1,7 +1,8 @@
 (ns td-lambda.core
   "A vectorized implementation of TD(lambda) reinforcement learning algorithm."
   (:require [td-lambda.util :as util]
-            [incanter.core :refer [matrix mult mmult plus trans]]))
+            [incanter.core :refer [matrix mult mmult plus trans]]
+            ))
 
 (defn- q
   [reward m y theta fe s a]
@@ -50,18 +51,27 @@
    reward: Reward function (reward s) => double
    fe: feature extraction function for states.
    initial-state: The initial state for each episode
-   sp: Source of actions for a state where (sp s) => [a1, a2, an]
+   sp: Source of actions for a state where (sp s) => [a1, a2... an]
    lambda: The trace decay parameter.
-   alpha: The learning rate, a small positive number.
+   alpha: The learning rate, a small positive number. Can also be an fn which
+          returns alpha when supplied with the episode number.
+   tau: The temperature parameter, closer to zero results in a more greedy
+        learning strategy. Can also be an fn which returns tau when supplied
+        with an episode number.
    y: Discount rate for future states.
    nmax: Number of episodes for learning.
    terminal?: A function that determines if a state s is a terminal state.
-   reset: Currently does nothing.
+
+
 
    Returns a policy function p in which (p s) => a."
-  [m reward fe initial-state sp lambda y alpha nmax terminal? & {:keys [reset] :or {reset true}}]
-  (partial policy
-           (nth (iterate (partial episode m reward fe initial-state sp lambda y terminal? 0.987 alpha)
-                         (matrix (repeat (count (fe initial-state)) 0)))
-                (dec nmax))
-           reward y m 0 fe sp))
+  [m reward fe initial-state sp lambda y alpha tau nmax terminal?]
+  (let [alpha (if (number? alpha) (fn [_] num alpha) alpha)
+        tau (if (number? tau) (fn [_] tau) tau)]
+    (partial policy
+             (nth (iterate
+                    (partial episode m reward fe initial-state sp lambda y terminal? (tau 0) (alpha 0))
+                    (matrix (repeat (count (fe initial-state)) 0)))
+                  (dec nmax))
+             reward y m 0 fe sp)))
+

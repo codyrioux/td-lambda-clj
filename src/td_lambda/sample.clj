@@ -12,7 +12,7 @@
 (defn reward
   "Reward is 1 / (|(goal - (s))| + 1)"
   [s] 
-  (/ 1 (+ 1 (Math/abs (- goal s)))))
+  (/ 1 (inc (Math/abs (- goal s)))))
 
 (defn m
   "States and actions are added."
@@ -42,4 +42,4 @@
   "Creates a policy for going from 0 to 10.
    Try calling with 0.5 0.001 0.1 100"
   [lambda alpha gamma n]
-  (tdl/learn m reward features 0 sp lambda gamma alpha n #(<= goal %) :reset true))
+  (tdl/learn m reward features 0 sp lambda gamma alpha 0.987 n #(<= goal %)))
